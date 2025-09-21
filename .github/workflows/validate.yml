@@ -1,0 +1,52 @@
+name: Repository Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check README files exist
+      run: |
+        echo "Checking for required README files..."
+        test -f README.md || { echo "Main README.md missing"; exit 1; }
+        test -f assignments/README.md || { echo "Assignments README.md missing"; exit 1; }
+        test -f docs/README.md || { echo "Docs README.md missing"; exit 1; }
+        echo "✅ All required README files found"
+    
+    - name: Validate Markdown files
+      uses: DavidAnson/markdownlint-action@v1
+      with:
+        files: '**/*.md'
+        config: |
+          {
+            "MD013": false,
+            "MD033": false,
+            "MD041": false
+          }
+    
+    - name: Check directory structure
+      run: |
+        echo "Validating directory structure..."
+        test -d assignments/web-development || { echo "web-development directory missing"; exit 1; }
+        test -d assignments/data-science || { echo "data-science directory missing"; exit 1; }
+        test -d assignments/mobile-development || { echo "mobile-development directory missing"; exit 1; }
+        test -d assignments/backend-development || { echo "backend-development directory missing"; exit 1; }
+        test -d assignments/projects || { echo "projects directory missing"; exit 1; }
+        test -d docs/templates || { echo "docs/templates directory missing"; exit 1; }
+        echo "✅ Directory structure is valid"
+    
+    - name: Check for required files
+      run: |
+        echo "Checking for required project files..."
+        test -f LICENSE || { echo "LICENSE file missing"; exit 1; }
+        test -f CONTRIBUTING.md || { echo "CONTRIBUTING.md missing"; exit 1; }
+        test -f .gitignore || { echo ".gitignore missing"; exit 1; }
+        echo "✅ All required project files found"
